@@ -1,0 +1,12 @@
+[package]
+name = "skyrim_alchemy_cli"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+skyrim_alchemy_db = { path="../skyrim_alchemy_db"}
+anyhow = "1.0"
+clap = {version="4.4", features=["derive"]}
+colored = "2.1"

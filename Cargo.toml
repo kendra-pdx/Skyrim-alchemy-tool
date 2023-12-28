@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "skyrim_alchemy_db",
+    "skyrim_alchemy_cli",
+]
+resolver = "2"
