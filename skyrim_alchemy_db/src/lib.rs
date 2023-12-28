@@ -1,10 +1,37 @@
 mod data;
+
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
+
 use std::collections::{HashMap, HashSet};
 
 pub use data::AlchemyData;
 use lazy_static::lazy_static;
 
 use crate::data::{Effect, Ingredient};
+
+pub struct InventoryItem {
+    pub name: String,
+}
+
+pub struct Inventory {
+    pub items: Vec<InventoryItem>
+}
+
+pub fn parse_inventory(inventory: &str) -> Inventory {
+    let items = inventory
+        .split('\n')
+        .map(|i| i.trim_matches(|c: char| c.is_numeric() || c == '(' || c == ')'))
+        .filter(|i| i.trim().len() > 0)
+        .map(|s| InventoryItem {
+            name: s.to_string()
+        })
+        .collect::<Vec<_>>();
+
+    Inventory {
+        items
+    }
+}
 
 #[derive(Clone, Copy)]
 pub enum RecipeKind {
@@ -41,18 +68,19 @@ pub struct Recipe {
     pub effect: String,
     pub ingredients: Vec<String>,
     pub value: u32,
-    pub kind: RecipeKind
+    pub kind: RecipeKind,
 }
 
 pub trait Search {
-    fn find_recipes(&self, inventory: &[&str]) -> Vec<Recipe>;
+    fn find_recipes(&self, inventory: &Inventory) -> Vec<Recipe>;
 }
 
 impl Search for AlchemyData {
-    fn find_recipes(&self, inventory: &[&str]) -> Vec<Recipe> {
+    fn find_recipes(&self, inventory: &Inventory) -> Vec<Recipe> {
         let mut effect_ingredients: HashMap<&Effect, HashSet<&Ingredient>> = HashMap::default();
-        let ingredients = inventory
+        let ingredients = inventory.items
             .iter()
+            .map(|i| i.name.as_str())
             .flat_map(|i| self.find_ingredient_by_name(i));
         for ingredient in ingredients {
             let effects = ingredient
@@ -73,7 +101,7 @@ impl Search for AlchemyData {
                 effect: effect.effect.clone(),
                 ingredients: ingredients.iter().map(|i| i.name.clone()).collect(),
                 value: effect.value.0,
-                kind: RecipeKind::from(effect.effect.as_str())
+                kind: RecipeKind::from(effect.effect.as_str()),
             })
             .collect::<Vec<_>>();
 
@@ -82,3 +110,4 @@ impl Search for AlchemyData {
         recipes
     }
 }
+

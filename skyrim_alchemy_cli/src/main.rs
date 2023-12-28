@@ -3,7 +3,7 @@ use std::{fmt::Display, path::PathBuf};
 use anyhow::{anyhow, Result};
 use clap::Parser;
 use colored::Colorize;
-use skyrim_alchemy_db::{AlchemyData, Recipe, RecipeKind, Search};
+use skyrim_alchemy_db::{AlchemyData, Recipe, RecipeKind, Search, parse_inventory};
 use std::io::read_to_string;
 
 #[derive(Parser)]
@@ -27,11 +27,7 @@ fn main() -> Result<()> {
     }?;
 
     let inventory = read_to_string(std::io::stdin())?;
-    let inventory = inventory
-        .split('\n')
-        .map(|i| i.trim_matches(|c: char| c.is_numeric() || c == '(' || c == ')'))
-        .filter(|i| i.trim().len() > 0)
-        .collect::<Vec<_>>();
+    let inventory = parse_inventory(inventory.as_str());
 
     let recipes = alchemy.find_recipes(&inventory);
 
