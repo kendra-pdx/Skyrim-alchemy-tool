@@ -34,7 +34,7 @@ function effectStyle(recipe: alchemy.Recipe): string {
 <template>
   <div class="alchemy">
     <section id="inventory-paste">
-      <textarea v-model="pastebox" cols="40" rows="25" />
+      <textarea v-model="pastebox" cols="40" rows="25" placeholder="Paste your ingredient inventory here."/>
     </section>
 
     <section id="recipes">
