@@ -8,11 +8,13 @@ skyrim_alchemy_wasm_init().then(() => {
 
 let pastebox = ref<string>("")
 let recipes = ref<alchemy.Recipe[]>([])
+let inventoryItems = ref<string[]>([])
 
 watch(pastebox, (text, _) => {
   try {
     let inventory = alchemy.Inventory.parse(text)
     recipes.value = inventory.recipes()
+    inventoryItems.value = inventory.items
   } catch (error) {
     console.error(error)
   }
@@ -34,7 +36,14 @@ function effectStyle(recipe: alchemy.Recipe): string {
 <template>
   <div class="alchemy">
     <section id="inventory-paste">
-      <textarea v-model="pastebox" cols="40" rows="25" placeholder="Paste your ingredient inventory here."/>
+      <div>
+        <textarea v-model="pastebox" cols="40" rows="25" placeholder="Paste your ingredient inventory here."/>
+      </div>
+      <div>
+        <ul>
+          <li v-for="item in inventoryItems">{{ item }}</li>
+        </ul>
+      </div>
     </section>
 
     <section id="recipes">

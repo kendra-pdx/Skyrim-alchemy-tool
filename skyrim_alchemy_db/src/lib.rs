@@ -22,6 +22,7 @@ pub fn parse_inventory(inventory: &str) -> Inventory {
     let items = inventory
         .split('\n')
         .map(|i| i.trim_matches(|c: char| c.is_numeric() || c == '(' || c == ')'))
+        .map(|i| i.trim())
         .filter(|i| i.trim().len() > 0)
         .map(|s| InventoryItem {
             name: s.to_string()
@@ -111,3 +112,17 @@ impl Search for AlchemyData {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use crate::parse_inventory;
+
+    #[test]
+    fn test_parse_inventory() {
+        let inventory = parse_inventory("
+            a
+            b (1)
+            c (10)
+        ");
+        assert_eq!(vec!["a", "b", "c"], inventory.items.iter().map(|i| &i.name).collect::<Vec<_>>())
+    }
+}
