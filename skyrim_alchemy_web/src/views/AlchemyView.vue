@@ -1,23 +1,34 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { inject, ref, watch } from 'vue';
 import skyrim_alchemy_wasm_init, * as alchemy from 'skyrim_alchemy_wasm'
 
 skyrim_alchemy_wasm_init().then(() => {
-  console.log("alchemy initialized")
+    console.log("alchemy wasm initialized")
 })
 
+let search = ref<string>("")
 let pastebox = ref<string>("")
 let recipes = ref<alchemy.Recipe[]>([])
 let inventoryItems = ref<string[]>([])
+let showInventoryParse = ref<boolean>(false)
 
-watch(pastebox, (text, _) => {
+function load_recipes(inventory_text: string, search_text: string) {
   try {
-    let inventory = alchemy.Inventory.parse(text)
-    recipes.value = inventory.recipes()
+    let alchemy_data = alchemy.InventoryAlchemy.load()
+    let inventory = alchemy.Inventory.parse(inventory_text)
+    recipes.value = inventory.recipes(alchemy_data, search_text)
     inventoryItems.value = inventory.items
   } catch (error) {
     console.error(error)
   }
+}
+
+watch(pastebox, (text, _) => {
+  load_recipes(text, search.value)
+})
+
+watch(search, (search_text, _) => {
+  load_recipes(pastebox.value, search_text)
 })
 
 function effectStyle(recipe: alchemy.Recipe): string {
@@ -37,9 +48,9 @@ function effectStyle(recipe: alchemy.Recipe): string {
   <div class="alchemy">
     <section id="inventory-paste">
       <div>
-        <textarea v-model="pastebox" cols="40" rows="25" placeholder="Paste your ingredient inventory here."/>
+        <textarea v-model="pastebox" cols="40" rows="25" placeholder="Paste your ingredient inventory here." />
       </div>
-      <div>
+      <div v-if="showInventoryParse">
         <ul>
           <li v-for="item in inventoryItems">{{ item }}</li>
         </ul>
@@ -47,17 +58,23 @@ function effectStyle(recipe: alchemy.Recipe): string {
     </section>
 
     <section id="recipes">
-      <table>
-        <tr v-for="recipe in recipes" class="recipe">
-          <td class="recipe-effect" :class="effectStyle(recipe)">{{ recipe.effect }}</td>
-          <td class="recipe-value">{{ recipe.value }}</td>
-          <td class="recipe-ingredient">
-            <ul>
-              <li v-for="ingredient in recipe.ingredients">{{ ingredient }}</li>
-            </ul>
-          </td>
-        </tr>
-      </table>
+      <div v-if="inventoryItems.length > 0">
+        <input type="text" placeholder="Search effect or ingredient" v-model="search"/>
+      </div>
+
+      <div>
+        <table>
+          <tr v-for="recipe in recipes" class="recipe">
+            <td class="recipe-effect" :class="effectStyle(recipe)">{{ recipe.effect }}</td>
+            <td class="recipe-value">{{ recipe.value }}</td>
+            <td class="recipe-ingredient">
+              <ul>
+                <li v-for="ingredient in recipe.ingredients">{{ ingredient }}</li>
+              </ul>
+            </td>
+          </tr>
+        </table>
+      </div>
     </section>
   </div>
 </template>
@@ -78,6 +95,9 @@ function effectStyle(recipe: alchemy.Recipe): string {
   padding-bottom: .25em;
   border-bottom: 1px dashed lightgray;
   margin: 0;
+}
+#recipes > div {
+  padding-top: .5em;
 }
 
 #recipes table {

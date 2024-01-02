@@ -3,7 +3,7 @@ use std::{fmt::Display, path::PathBuf};
 use anyhow::{anyhow, Result};
 use clap::Parser;
 use colored::Colorize;
-use skyrim_alchemy_db::{AlchemyData, Recipe, RecipeKind, Search, parse_inventory};
+use skyrim_alchemy_db::*;
 use std::io::read_to_string;
 
 #[derive(Parser)]
@@ -26,10 +26,12 @@ fn main() -> Result<()> {
         _ => Err(anyhow!("-i and -e must be used together")),
     }?;
 
+    let alchemy = AlchemyDataIndexes::new(&alchemy);
+
     let inventory = read_to_string(std::io::stdin())?;
     let inventory = parse_inventory(inventory.as_str());
 
-    let recipes = alchemy.find_recipes(&inventory);
+    let recipes = alchemy.find_recipes(&inventory, &SearchTerm::None);
 
     struct RecipeDisplay<'a>(&'a Recipe);
     impl<'a> Display for RecipeDisplay<'a> {
